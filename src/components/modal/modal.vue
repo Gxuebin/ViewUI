@@ -40,7 +40,7 @@
     import { on, off } from '../../utils/dom';
     import { findComponentsDownward } from '../../utils/assist';
 
-    import { transferIndex as modalIndex, transferIncrease as modalIncrease } from '../../utils/transfer-queue';
+    import { transferIndex as modalIndex, transferIncrease as modalIncrease, lastVisibleIndex, lastVisibleIncrease } from '../../utils/transfer-queue';
 
     const prefixCls = 'ivu-modal';
 
@@ -82,7 +82,10 @@
                 default: false
             },
             styles: {
-                type: Object
+                type: Object,
+                default () {
+                    return {};
+                }
             },
             className: {
                 type: String
@@ -202,8 +205,12 @@
                 let style = {};
 
                 if (this.draggable) {
-                    if (this.dragData.x !== null) style.left = `${this.dragData.x}px`;
+                    const customTop = this.styles.top ? parseFloat(this.styles.top) : 0;
+                    const customLeft = this.styles.left ? parseFloat(this.styles.left) : 0;
+                    if (this.dragData.x !== null) style.left = `${this.dragData.x - customLeft}px`;
                     if (this.dragData.y !== null) style.top = `${this.dragData.y}px`;
+                    if (this.dragData.y !== null) style.top = `${this.dragData.y - customTop}px`;
+
                     const width = parseInt(this.width);
                     const styleWidth = {
                         width: width <= 100 ? `${width}%` : `${width}px`
@@ -336,6 +343,10 @@
             },
             handleClickModal () {
                 if (this.draggable) {
+                    if (lastVisibleIndex !== this.lastVisibleIndex){
+                        this.lastVisibleIndex = lastVisibleIndex;
+                        return;
+                    }
                     this.modalIndex = this.handleGetModalIndex();
                 }
             }
@@ -372,7 +383,10 @@
                         this.removeScrollEffect();
                     }, 300);
                 } else {
-                    this.modalIndex = this.handleGetModalIndex();
+                    if (this.lastVisible !== val) {
+                        this.modalIndex = this.handleGetModalIndex();
+                        lastVisibleIncrease();
+                    }
 
                     if (this.timer) clearTimeout(this.timer);
                     this.wrapShow = true;
@@ -383,6 +397,8 @@
                 this.broadcast('Table', 'on-visible-change', val);
                 this.broadcast('Slider', 'on-visible-change', val);  // #2852
                 this.$emit('on-visible-change', val);
+                this.lastVisible = val;
+                this.lastVisibleIndex = lastVisibleIndex;
             },
             loading (val) {
                 if (!val) {

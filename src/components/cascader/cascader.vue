@@ -1,5 +1,5 @@
 <template>
-    <div :class="classes" v-click-outside:[capture]="handleClose">
+    <div :class="classes" v-click-outside="handleClose">
         <div :class="[prefixCls + '-rel']" @click="toggleOpen" ref="reference">
             <input type="hidden" :name="name" :value="currentValue">
             <slot>
@@ -23,7 +23,7 @@
         <transition name="transition-drop">
             <Drop
                 v-show="visible"
-                :class="{ [prefixCls + '-transfer']: transfer }"
+                :class="dropdownCls"
                 ref="drop"
                 :data-transfer="transfer"
                 :transfer="transfer"
@@ -58,7 +58,7 @@
     import Drop from '../select/dropdown.vue';
     import Icon from '../icon/icon.vue';
     import Caspanel from './caspanel.vue';
-    import {directive as clickOutside} from '../../directives/v-click-outside-x';
+    import clickOutside from '../../directives/clickoutside';
     import TransferDom from '../../directives/transfer-dom';
     import { oneOf } from '../../utils/assist';
     import Emitter from '../../mixins/emitter';
@@ -149,6 +149,9 @@
                 default () {
                     return !this.$IVIEW ? true : this.$IVIEW.capture;
                 }
+            },
+            transferClassName: {
+                type: String
             }
         },
         data () {
@@ -275,6 +278,12 @@
                     }
                 }
                 return size;
+            },
+            dropdownCls () {
+                return {
+                    [prefixCls + '-transfer']: this.transfer,
+                    [this.transferClassName]: this.transferClassName
+                };
             }
         },
         methods: {

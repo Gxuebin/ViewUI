@@ -35,7 +35,7 @@
             <Drop
                 @click.native="handleTransferClick"
                 v-show="opened"
-                :class="{ [prefixCls + '-transfer']: transfer }"
+                :class="dropdownCls"
                 :placement="placement"
                 ref="drop"
                 :data-transfer="transfer"
@@ -220,6 +220,9 @@
                 default () {
                     return !this.$IVIEW ? true : this.$IVIEW.capture;
                 }
+            },
+            transferClassName: {
+                type: String
             }
         },
         data(){
@@ -357,6 +360,12 @@
                 }
 
                 return size;
+            },
+            dropdownCls () {
+                return {
+                    [prefixCls + '-transfer']: this.transfer,
+                    [this.transferClassName]: this.transferClassName
+                };
             }
         },
         methods: {
@@ -532,8 +541,9 @@
 
 
                     const pickerPossibleValues = timePickers[pickerIndex][`${timeParts[col]}List`];
-                    const nextIndex = pickerPossibleValues.findIndex(({text}) => this.focusedTime.time[pickerIndex][col] === text) + increment;
-                    const nextValue = pickerPossibleValues[nextIndex % pickerPossibleValues.length].text;
+                    const currentIndex = pickerPossibleValues.findIndex(({text}) => this.focusedTime.time[pickerIndex][col] === text);
+                    const nextIndex = (currentIndex + increment + pickerPossibleValues.length) % pickerPossibleValues.length;
+                    const nextValue = pickerPossibleValues[nextIndex].text;
                     const times = this.focusedTime.time.map((time, i) => {
                         if (i !== pickerIndex) return time;
                         time[col] = nextValue;
